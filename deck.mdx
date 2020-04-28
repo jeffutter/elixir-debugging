@@ -1,0 +1,856 @@
+import Prism from "prismjs";
+import "prismjs/components/prism-elixir";
+import "prismjs/components/prism-erlang";
+import { CodeSurfer, CodeSurferColumns, Step } from "code-surfer";
+import { dracula } from "@code-surfer/themes";
+import { Notes, Footer, Image, Appear } from "mdx-deck";
+import { themes } from "mdx-deck";
+export const theme = {
+  ...dracula,
+  ...{
+    styles: {
+      a: {
+        color: "#417be6",
+        textDecoration: "none",
+      },
+    },
+  },
+};
+
+import traceError from "./images/trace-error.png";
+import traceOK from "./images/trace-ok.png";
+import bass from "./images/bass.jpg";
+import br from "./images/br.png";
+import jasper from "./images/jasper.jpg";
+import kilgore from "./images/kilgore.jpg";
+import maya from "./images/maya.jpg";
+import punch from "./images/punch.gif";
+
+# Debugging Live Systems
+
+## [@jeffutter](https://twitter.com/jeffutter "Jeffery Utter")
+
+---
+
+# Jeff Utter
+
+<Appear>
+
+<Image src={bass} width="80vw" size="contain" />
+
+</Appear>
+
+---
+
+<Image src={br} width="80vw" size="contain" />
+
+---
+
+# Topeka, KS
+
+---
+
+# Two Cats and a Dog
+
+---
+
+# Kilgore
+
+<Appear>
+  <Image src={kilgore} width="80vw" size="contain" />
+</Appear>
+
+---
+
+# Jasper
+
+<Appear>
+  <Image src={jasper} width="80vw" size="contain" />
+</Appear>
+
+---
+
+# Maya
+
+<Appear>
+  <Image src={maya} width="80vw" size="contain" />
+</Appear>
+
+---
+
+# Live Debugging
+
+---
+
+## What is live debugging?
+
+<Steps>
+
+- Not Tracing
+- Not Monitoring
+- Not Step Debugging
+- **Last Resort for Production Issues**
+
+</Steps>
+
+---
+
+## Tracing
+
+<Appear>
+
+Sometimes the error is obvious!
+
+</Appear>
+
+<Appear>
+  <Image src={traceError} width="80vw" size="contain" />
+</Appear>
+
+---
+
+## Tracing
+
+<Appear>
+
+Sometimes the error is nowhere to be found!
+
+</Appear>
+
+<Appear>
+
+<Image src={traceOK} width="80vw" size="contain" />
+
+</Appear>
+
+<Appear>
+
+Enter Remote Debugging!
+
+</Appear>
+
+---
+
+## Tools built in to the BEAM
+
+---
+
+### Remote console
+
+---
+
+### Remote console
+
+- IEx
+- Distillery
+- Elixir Releases
+
+---
+
+<CodeSurfer>
+
+```shell title="Remote Shell with IEx"
+$ iex --name "debug@hostname.com" --cookie secret --remsh "app@hostname.com"
+```
+
+```shell title="Remote Shell with Distillery"
+$ ./bin/release remote_console
+```
+
+```shell title="Remote Shell with Elixir Releases"
+$ ./bin/release remote
+```
+
+</CodeSurfer>
+
+<Notes>
+
+- Release have remote shell built in
+- Not going into too much detail since every environment is different
+
+</Notes>
+
+---
+
+### Beam Debugging
+
+Of course the beam comes with a built in debug module.
+
+---
+
+### Actually there are a few!
+
+<Steps>
+
+- `:erlang.trace` / `:erlang.trace_pattern`
+- [`:dbg`](https://erlang.org/doc/man/dbg.html)
+- `:debugger`
+- `:sys` module
+- `:seq_trace`
+
+</Steps>
+
+---
+
+### `:erlang.trace`
+
+<Notes>
+
+- BIF
+- Foundation for all other tracing tools in the BEAM
+
+</Notes>
+
+---
+
+<CodeSurfer>
+
+```elixir title="Trace Process" 2:4
+defmodule Tracer do
+  def start do
+    spawn(&loop/0)
+  end
+
+  def loop do
+    receive do
+      msg ->
+        IO.inspect(msg)
+        loop()
+    end
+  end
+end
+```
+
+```diff title="Trace Process" 6:12
+
+```
+
+</CodeSurfer>
+
+<Notes>
+
+- Receives traces messages and logs them to the console
+
+</Notes>
+
+---
+
+### Trace a process
+
+---
+
+<CodeSurfer>
+
+```elixir title="Our test process"
+defmodule Echo do
+  def start do
+    spawn(&loop/0)
+  end
+
+  def call(pid, msg) do
+    send(pid, {self(), msg})
+
+    receive do
+      msg ->
+        msg
+    end
+  end
+
+  defp loop do
+    receive do
+      {from, message} when is_pid(from) ->
+        send(from, message)
+        loop()
+    end
+  end
+end
+```
+
+```diff title="Our test process" subtitle="Run a process in a loop" 2:4
+
+```
+
+```diff title="Our test process" subtitle="Receive a message and send back the same message" 15:21
+
+```
+
+```diff title="Our test process" subtitle="Public function to call the process and wait for response" 6:13
+
+```
+
+```elixir subtitle="Start the process and trace logger"
+iex(1)> echo_pid = Echo.start()
+#PID<0.125.0>
+iex(2)> tracer_pid = Tracer.start()
+#PID<0.127.0>
+```
+
+```elixir subtitle="Setup tracing"
+iex(1)> echo_pid = Echo.start()
+#PID<0.125.0>
+iex(2)> tracer_pid = Tracer.start()
+#PID<0.127.0>
+iex(3)> :erlang.trace(echo_pid, true, [:all, {:tracer, tracer_pid}])
+1
+```
+
+```elixir subtitle="Call the echo process"
+iex(1)> echo_pid = Echo.start()
+#PID<0.125.0>
+iex(2)> tracer_pid = Tracer.start()
+#PID<0.127.0>
+iex(3)> :erlang.trace(echo_pid, true, [:all, {:tracer, tracer_pid}])
+1
+iex(4)> Echo.call(echo_pid, :hi)
+:hi
+{:trace_ts, #PID<0.125.0>, :in, {Echo, :loop, 0}, 3, {1588, 360682, 682641}}
+{:trace_ts, #PID<0.125.0>, :receive, {#PID<0.109.0>, :hi}, 3, {1588, 360682, 682645}}
+{:trace_ts, #PID<0.125.0>, :send, :hello, #PID<0.109.0>, 3, {1588, 360682, 682648}}
+{:trace_ts, #PID<0.125.0>, :out, {Echo, :loop, 0}, 3, {1588, 360682, 682650}}
+```
+
+</CodeSurfer>
+
+<Notes>
+
+- Explain tracer_ts field
+- trace_ts = trace_timestamp
+- The time stamp (Ts) has the same form as returned by erlang:now(): {MegaSecs, Secs, MicroSecs}
+- in/out schedule
+- Turns on (if How == true) or off (if How == false) the trace flags in FlagList for the process or processes represented by PidPortSpec.
+- Tracer options: all | send | 'receive' | procs | ports | call | arity | return_to | silent | running | exiting | running_procs | running_ports | garbage_collection | timestamp | cpu_timestamp | monotonic_timestamp | strict_monotonic_timestamp | set_on_spawn | set_on_first_spawn | set_on_link | set_on_first_link |
+
+</Notes>
+
+---
+
+### `:erlang.trace` Options
+
+---
+
+<CodeSurfer>
+
+```erlang title=":erlang.trace Options"
+erlang:trace(PidPortSpec, How, FlagList) -> integer()
+Types
+PidPortSpec =
+    pid() |
+    port() |
+    all | processes | ports | existing | existing_processes |
+    existing_ports | new | new_processes | new_ports
+How = boolean()
+FlagList = [trace_flag()]
+trace_flag() =
+    all | send | 'receive' | procs | ports | call | arity |
+    return_to | silent | running | exiting | running_procs |
+    running_ports | garbage_collection | timestamp |
+    cpu_timestamp | monotonic_timestamp |
+    strict_monotonic_timestamp | set_on_spawn |
+    set_on_first_spawn | set_on_link | set_on_first_link |
+    {tracer, pid() | port()} |
+    {tracer, module(), term()}
+```
+
+```diff title=":erlang.trace Options" subtitle="Send/Receive messages" 11[11:26]
+
+```
+
+```diff title=":erlang.trace Options" subtitle="Trace Function Calls" 11[46:50]
+
+```
+
+```diff title=":erlang.trace Options" subtitle="Traces scheduling of processes" 12[26:32]
+
+```
+
+```diff title=":erlang.trace Options" subtitle="Traces garbage collections of processes." 13[20:38]
+
+```
+
+</CodeSurfer>
+
+<Notes>
+
+- Garbagn Collection message tags: gc_minor_start, gc_max_heap_size, and gc_minor_end.
+- gc_max_heap_size = When process hits max_heap_size
+
+</Notes>
+
+---
+
+### Trace a function
+
+---
+
+<CodeSurfer>
+
+```elixir subtitle="Start the trace collector"
+iex(1)> pid = Trace.start()
+#PID<0.118.0>
+```
+
+```elixir subtitle="Enable tracing"
+iex(1)> pid = Trace.start()
+#PID<0.118.0>
+iex(2)> :erlang.trace(:all, true, [:call, {:tracer, pid}])
+59
+```
+
+```elixir subtitle="Tell the tracer where to send traces" 3[42:56]
+iex(1)> pid = Trace.start()
+#PID<0.118.0>
+iex(2)> :erlang.trace(:all, true, [:call, {:tracer, pid}])
+59
+```
+
+```elixir subtitle="Set the trace pattern"
+iex(1)> pid = Trace.start()
+#PID<0.118.0>
+iex(2)> :erlang.trace(:all, true, [:call, {:tracer, pid}])
+59
+iex(3)> :erlang.trace_pattern({String, :downcase, 1}, true, [])
+1
+```
+
+```elixir subtitle="Do something traceable"
+iex(1)> pid = Trace.start()
+#PID<0.118.0>
+iex(2)> :erlang.trace(:all, true, [:call, {:tracer, pid}])
+59
+iex(3)> :erlang.trace_pattern({String, :downcase, 1}, true, [])
+1
+iex(4)> String.downcase("foo")
+"foo"
+{:trace, #PID<0.109.0>, :call, {String, :downcase, ["foo"]}}
+```
+
+```elixir subtitle="Stop the trace"
+iex(1)> pid = Trace.start()
+#PID<0.118.0>
+iex(2)> :erlang.trace(:all, true, [:call, {:tracer, pid}])
+59
+iex(3)> :erlang.trace_pattern({String, :downcase, 1}, true, [])
+1
+iex(4)> String.downcase("foo")
+"foo"
+{:trace, #PID<0.109.0>, :call, {String, :downcase, ["foo"]}}
+iex(5)> :erlang.trace(:all, false, [:call, {:tracer, pid}])
+59
+iex(6)> String.downcase("foo")
+"foo"
+```
+
+</CodeSurfer>
+
+---
+
+## Can we get more specific?
+
+<Appear>
+
+## Yes! Match Specs
+
+</Appear>
+
+---
+
+<CodeSurfer>
+
+```elixir subtitle="Start the trace collector"
+iex(1)> pid = Trace.start()
+#PID<0.118.0>
+```
+
+```elixir subtitle="Start the tracer"
+iex(1)> pid = Trace.start()
+#PID<0.118.0>
+iex(2)> :erlang.trace(:all, true, [:call, {:tracer, tracer_pid}])
+59
+```
+
+```elixir subtitle="Trace all processes" 3[23:26]
+iex(1)> pid = Trace.start()
+#PID<0.118.0>
+iex(2)> :erlang.trace(:all, true, [:call, {:tracer, tracer_pid}])
+59
+```
+
+```elixir subtitle="Trace function calls" 3[36:40]
+iex(1)> pid = Trace.start()
+#PID<0.118.0>
+iex(2)> :erlang.trace(:all, true, [:call, {:tracer, tracer_pid}])
+59
+```
+
+```elixir subtitle="Send it to the tracer pid" 3[44:62]
+iex(1)> pid = Trace.start()
+#PID<0.118.0>
+iex(2)> :erlang.trace(:all, true, [:call, {:tracer, tracer_pid}])
+59
+```
+
+```elixir subtitle="Setup the match spec"
+iex(1)> pid = Trace.start()
+#PID<0.118.0>
+iex(2)> :erlang.trace(:all, true, [:call, {:tracer, tracer_pid}])
+59
+# We'll talk about this next line a bit more later
+iex(3)> ms =
+      >   :dbg.fun2ms(fn [s] when s == "HI" -> :return_trace end)
+      >   |> put_in([Access.at(0), Access.elem(2), Access.at(0)], {:return_trace})
+[{[:"$1"], [{:==, :"$1", "HI"}], [{:return_trace}]}]
+```
+
+```elixir subtitle="Call the function"
+iex(1)> pid = Trace.start()
+#PID<0.118.0>
+iex(2)> :erlang.trace(:all, true, [:call, {:tracer, tracer_pid}])
+59
+iex(3)> ms =
+      >   :dbg.fun2ms(fn [s] when s == "HI" -> :return_trace end)
+      >   |> put_in([Access.at(0), Access.elem(2), Access.at(0)], {:return_trace})
+[{[:"$1"], [{:==, :"$1", "HI"}], [{:return_trace}]}]
+iex(6)> String.downcase("FOO")
+"foo"
+iex(5)> String.downcase("HI")
+{:trace, #PID<0.109.0>, :call, {String, :downcase, ["HI"]}}
+"hi"
+{:trace, #PID<0.109.0>, :return_from, {String, :downcase, 1}, "hi"}
+```
+
+</CodeSurfer>
+
+---
+
+#### What on Earth?
+
+---
+
+<CodeSurfer>
+
+```elixir
+:dbg.fun2ms(fn [s] when s == "HI" -> nil end)
+```
+
+</CodeSurfer>
+
+<Notes>
+
+- Looks like a function... sorta
+- Can use most guards
+- Can use variables from outside in guard
+- The function body bit is hard in elixir
+
+</Notes>
+
+---
+
+#### The Hack...
+
+---
+
+<CodeSurferColumns>
+
+<Step>
+
+```erlang title="In Erlang"
+1> dbg:fun2ms(fun([M,N]) when N > 3 -> return_trace() end).
+[{['$1','$2'],[{'>','$2',3}],[{return_trace}]}]
+```
+
+```elixir title="In Elixir"
+iex(1)> :dbg.fun2ms(fn [m, n] when n > 3 -> return_trace() end)
+```
+
+</Step>
+
+<Step>
+
+```erlang title="In Erlang"
+1> dbg:fun2ms(fun([M,N]) when N > 3 -> return_trace() end).
+[{['$1','$2'],[{'>','$2',3}],[{return_trace}]}]
+```
+
+```elixir title="In Elixir" subtitle="Boom!"
+iex(1)> :dbg.fun2ms(fn [m, n] when n > 3 -> return_trace() end)
+** (CompileError) iex:1: undefined function return_trace/0
+    (elixir 1.10.2) src/elixir_fn.erl:15: anonymous fn/4 in :elixir_fn.expand/3
+    (stdlib 3.12.1) lists.erl:1354: :lists.mapfoldl/3
+    (elixir 1.10.2) src/elixir_fn.erl:20: :elixir_fn.expand/3
+    (stdlib 3.12.1) lists.erl:1354: :lists.mapfoldl/3
+```
+
+</Step>
+
+<Step>
+
+```erlang title="In Erlang"
+1> dbg:fun2ms(fun([M,N]) when N > 3 -> return_trace() end).
+[{['$1','$2'],[{'>','$2',3}],[{return_trace}]}]
+```
+
+```elixir title="In Elixir" subtitle="Modify the 3rd element of the tuple"
+iex(1)> :dbg.fun2ms(fn [m,  n] when m > 3 -> :return_trace end)
+      > |> put_in([Access.at(0), Access.elem(2), Access.at(0)], {:return_trace})
+[{[:"$1",:"$2"],[{:>,:"$2",3}],[{:return_trace}]}]
+```
+
+</Step>
+
+</CodeSurferColumns>
+
+---
+
+If you do this a lot in Elixir you can use [ex2ms](https://github.com/ericmj/ex2ms)
+
+<Notes>
+
+- You don't necessarily need this on the box you are using it on
+
+</Notes>
+
+---
+
+### `:dbg`
+
+- Wrapper around `:erlang.trace`
+- Handles starting the trace process
+- Robust, ~150 lines of erlang
+- Supports tracing other nodes
+
+---
+
+### Trace a process
+
+---
+
+<CodeSurfer>
+
+```elixir subtitle="Start the process"
+iex(1)> echo_pid = Echo.start
+#PID<0.118.0>
+```
+
+```elixir subtitle="Setup tracing on the local node"
+iex(1)> echo_pid = Echo.start
+#PID<0.118.0>
+iex(4)> :dbg.tracer()
+{:ok, #PID<0.120.0>}
+```
+
+```elixir subtitle="Setup tracing on the process"
+iex(1)> echo_pid = Echo.start
+#PID<0.118.0>
+iex(4)> :dbg.tracer()
+{:ok, #PID<0.120.0>}
+iex(5)> :dbg.p(echo_pid, [:all])
+{:ok, [{:matched, :nonode@nohost, 1}]}
+```
+
+```elixir subtitle="Call the process"
+iex(1)> echo_pid = Echo.start
+#PID<0.118.0>
+iex(4)> :dbg.tracer()
+{:ok, #PID<0.120.0>}
+iex(5)> :dbg.p(echo_pid, [:all])
+{:ok, [{:matched, :nonode@nohost, 1}]}
+iex(6)> Echo.call(echo_pid, :hi)
+:hi
+(<0.118.0>) in {'Elixir.Echo',loop,0} (Timestamp: {1588,724836,891436})
+(<0.118.0>) << {<0.109.0>,hi} (Timestamp: {1588,724836,891679})
+(<0.118.0>) <0.109.0> ! hi (Timestamp: {1588,724836,891684})
+(<0.118.0>) out {'Elixir.Echo',loop,0} (Timestamp: {1588,724836,891687})
+```
+
+```elixir subtitle="Stop and cleanup"
+iex(1)> echo_pid = Echo.start
+#PID<0.118.0>
+iex(4)> :dbg.tracer()
+{:ok, #PID<0.120.0>}
+iex(5)> :dbg.p(echo_pid, [:all])
+{:ok, [{:matched, :nonode@nohost, 1}]}
+iex(6)> Echo.call(echo_pid, :hi)
+:hi
+(<0.118.0>) in {'Elixir.Echo',loop,0} (Timestamp: {1588,724836,891436})
+(<0.118.0>) << {<0.109.0>,hi} (Timestamp: {1588,724836,891679})
+(<0.118.0>) <0.109.0> ! hi (Timestamp: {1588,724836,891684})
+(<0.118.0>) out {'Elixir.Echo',loop,0} (Timestamp: {1588,724836,891687})
+iex(8)> :dbg.stop_clear()
+:ok
+```
+
+</CodeSurfer>
+
+---
+
+### Trace a function
+
+---
+
+<CodeSurfer>
+
+```elixir subtitle="Start the tracer and setup tracing for all processes"
+iex(1)> :dbg.tracer()
+{:ok, #PID<0.111.0>}
+iex(2)> :dbg.p(:all,:c)
+{:ok, [{:matched, :nonode@nohost, 60}]}
+```
+
+```elixir subtitle="Setup tracing for the function"
+iex(1)> :dbg.tracer()
+{:ok, #PID<0.111.0>}
+iex(2)> :dbg.p(:all,:c)
+{:ok, [{:matched, :nonode@nohost, 60}]}
+iex(3)>  :dbg.tpl(String, :downcase, :x)
+{:ok, [{:matched, :nonode@nohost, 2}, {:saved, :x}]}
+```
+
+```elixir subtitle="Call the function"
+iex(1)> :dbg.tracer()
+{:ok, #PID<0.111.0>}
+iex(2)> :dbg.p(:all,:c)
+{:ok, [{:matched, :nonode@nohost, 60}]}
+iex(3)>  :dbg.tpl(String, :downcase, :x)
+{:ok, [{:matched, :nonode@nohost, 2}, {:saved, :x}]}
+iex(4)> String.downcase("HI")
+(<0.109.0>) call 'Elixir.String':downcase(<<"HI">>)
+(<0.109.0>) call 'Elixir.String':downcase(<<"HI">>,default)
+(<0.109.0>) returned from 'Elixir.String':downcase/2 -> <<"hi">>
+(<0.109.0>) returned from 'Elixir.String':downcase/1 -> <<"hi">>
+"hi"
+```
+
+```elixir subtitle="Cleanup"
+iex(1)> :dbg.tracer()
+{:ok, #PID<0.111.0>}
+iex(2)> :dbg.p(:all,:c)
+{:ok, [{:matched, :nonode@nohost, 60}]}
+iex(3)>  :dbg.tpl(String, :downcase, :x)
+{:ok, [{:matched, :nonode@nohost, 2}, {:saved, :x}]}
+iex(4)> String.downcase("HI")
+(<0.109.0>) call 'Elixir.String':downcase(<<"HI">>)
+(<0.109.0>) call 'Elixir.String':downcase(<<"HI">>,default)
+(<0.109.0>) returned from 'Elixir.String':downcase/2 -> <<"hi">>
+(<0.109.0>) returned from 'Elixir.String':downcase/1 -> <<"hi">>
+"hi"
+iex(5)> :dbg.stop_clear()
+:ok
+```
+
+```elixir subtitle="Shortcuts" 1[21:23],3[38:40]
+iex(2)> :dbg.p(:all,:c)
+{:ok, [{:matched, :nonode@nohost, 60}]}
+iex(3)>  :dbg.tpl(String, :downcase, :x)
+{:ok, [{:matched, :nonode@nohost, 2}, {:saved, :x}]}
+```
+
+</CodeSurfer>
+
+---
+
+The 3rd argument to `:dbg.tpl(Module, :function, _)` can also be a MatchSpec
+
+---
+
+### Pitfalls of `:erlang.trace` and `:dbg`
+
+<Steps>
+
+- Arguably confusing interface
+- Potential to dump unbounded amonuts of tracing
+- Ability to deadlock
+
+</Steps>
+
+---
+
+## Recon
+
+<Steps>
+
+- `:erlang.trace` wrapper by Fred Hebert
+- Production Safe!
+  - Tracer links to shell
+  - Formatter links to tracer
+  - Gracefully shuts down on remote shell disconnect
+  - Enforces limited count of traces
+- Single node only
+
+</Steps>
+
+---
+
+### Trace a function
+
+---
+
+<CodeSurfer>
+
+```elixir subtitle="Setup trace for the function call"
+iex(1)> :recon_trace.calls({String, :downcase, :return_trace}, 2)
+2
+```
+
+```diff subtitle="Return trace shortcut" 1[48:60]
+
+```
+
+```diff subtitle="Limit number of calls" 1[64]
+
+```
+
+```elixir subtitle="Call the function"
+iex(2)> String.downcase("HI")
+"hi"
+
+9:24:54.599054 <0.682.0> 'Elixir.String':downcase(<<"HI">>)
+
+9:24:54.607330 <0.682.0> 'Elixir.String':downcase/1 --> <<"hi">>
+Recon tracer rate limit tripped.
+```
+
+</CodeSurfer>
+
+---
+
+<Steps>
+
+- 3rd argument to tuple can be match spec
+  ```
+  :recon_trace.calls({String, :downcase, match_spec}, _)
+  ```
+- `:recon_trace.calls/3` takes a 3rd argument that can specify the pid to trace among other things
+
+</Steps>
+
+---
+
+## What's left?
+
+<Steps>
+
+- Sequential Tracing `:seq_trace`
+  > Sequential tracing is a way to trace a sequence of messages sent between different local or remote processes, where the sequence is initiated by a single message.
+  >
+  > -- <cite>[Erlang -- seq_trace](https://erlang.org/doc/man/seq_trace.html#whatis)</cite>
+- Production safe debugging across nodes
+- `:sys` module
+
+</Steps>
+
+---
+
+## Resources
+
+- [Connect to Running Elixir Applications with IEx Remote Shell](http://joeellis.la/iex-remsh-shells/)
+- [Tracing in Erlang (Gist)](https://gist.github.com/id/cba5dbf7653d7eab6a03)
+- [Recon](https://ferd.github.io/recon/)
+- [Erlang in Anger](https://www.erlang-in-anger.com/)
+- [Observer Cli](https://github.com/zhongwencool/observer_cli)
+- [Debugging Techniques in Elixir](http://blog.plataformatec.com.br/2016/04/debugging-techniques-in-elixir-lang/)
+
+---
+
+# Questions?
+
+<Image src={punch} width="80vw" size="contain" />
