@@ -2,11 +2,11 @@ import Prism from "prismjs";
 import "prismjs/components/prism-elixir";
 import "prismjs/components/prism-erlang";
 import { CodeSurfer, CodeSurferColumns, Step } from "code-surfer";
-import { dracula } from "@code-surfer/themes";
+import { github } from "@code-surfer/themes";
 import { Notes, Footer, Image, Appear } from "mdx-deck";
 import { themes } from "mdx-deck";
 export const theme = {
-  ...dracula,
+  ...github,
   ...{
     styles: {
       a: {
@@ -183,7 +183,7 @@ Of course the beam comes with a built in debug module.
 <Steps>
 
 - `:erlang.trace` / `:erlang.trace_pattern`
-- [`:dbg`](https://erlang.org/doc/man/dbg.html)
+- `:dbg`
 - `:debugger`
 - `:sys` module
 - `:seq_trace`
@@ -200,6 +200,10 @@ Of course the beam comes with a built in debug module.
 - Foundation for all other tracing tools in the BEAM
 
 </Notes>
+
+---
+
+### The tracing process
 
 ---
 
@@ -278,6 +282,12 @@ end
 
 ```
 
+</CodeSurfer>
+
+---
+
+<CodeSurfer>
+
 ```elixir subtitle="Start the process and trace logger"
 iex(1)> echo_pid = Echo.start()
 #PID<0.125.0>
@@ -292,6 +302,10 @@ iex(2)> tracer_pid = Tracer.start()
 #PID<0.127.0>
 iex(3)> :erlang.trace(echo_pid, true, [:all, {:tracer, tracer_pid}])
 1
+```
+
+```diff subtitle="Tell erlang where to send traces" 5[45:66]
+
 ```
 
 ```elixir subtitle="Call the echo process"
@@ -309,11 +323,34 @@ iex(4)> Echo.call(echo_pid, :hi)
 {:trace_ts, #PID<0.125.0>, :out, {Echo, :loop, 0}, 3, {1588, 360682, 682650}}
 ```
 
+```diff subtitle="Timestamp Traces" 9[1:10],10[1:10],11[1:10],12[1:10]
+
+```
+
+```diff subtitle="Pid that was traced" 9[13:25],10[13:25],11[13:25],12[13:25]
+
+```
+
+```diff subtitle="Trace Event" 9[28:30],10[28:35],11[28:32],12[28:31]
+
+```
+
+```diff subtitle="Event Details" 9[33:48],10[38:57],11[35:55],12[34:49]
+
+```
+
+```diff subtitle="I have no idea!" 9[51],10[60],11[58],12[52]
+
+```
+
+```diff subtitle="Timestamp" 9[54:75],10[63:84],11[61:82],12[55:76]
+
+```
+
 </CodeSurfer>
 
 <Notes>
 
-- Explain tracer_ts field
 - trace_ts = trace_timestamp
 - The time stamp (Ts) has the same form as returned by erlang:now(): {MegaSecs, Secs, MicroSecs}
 - in/out schedule
@@ -396,13 +433,6 @@ iex(2)> :erlang.trace(:all, true, [:call, {:tracer, pid}])
 59
 ```
 
-```elixir subtitle="Tell the tracer where to send traces" 3[42:56]
-iex(1)> pid = Trace.start()
-#PID<0.118.0>
-iex(2)> :erlang.trace(:all, true, [:call, {:tracer, pid}])
-59
-```
-
 ```elixir subtitle="Set the trace pattern"
 iex(1)> pid = Trace.start()
 #PID<0.118.0>
@@ -419,9 +449,9 @@ iex(2)> :erlang.trace(:all, true, [:call, {:tracer, pid}])
 59
 iex(3)> :erlang.trace_pattern({String, :downcase, 1}, true, [])
 1
-iex(4)> String.downcase("foo")
+iex(4)> String.downcase("FOO")
 "foo"
-{:trace, #PID<0.109.0>, :call, {String, :downcase, ["foo"]}}
+{:trace, #PID<0.109.0>, :call, {String, :downcase, ["FOO"]}}
 ```
 
 ```elixir subtitle="Stop the trace"
@@ -431,12 +461,12 @@ iex(2)> :erlang.trace(:all, true, [:call, {:tracer, pid}])
 59
 iex(3)> :erlang.trace_pattern({String, :downcase, 1}, true, [])
 1
-iex(4)> String.downcase("foo")
+iex(4)> String.downcase("FOO")
 "foo"
-{:trace, #PID<0.109.0>, :call, {String, :downcase, ["foo"]}}
+{:trace, #PID<0.109.0>, :call, {String, :downcase, ["FOO"]}}
 iex(5)> :erlang.trace(:all, false, [:call, {:tracer, pid}])
 59
-iex(6)> String.downcase("foo")
+iex(6)> String.downcase("FOO")
 "foo"
 ```
 
@@ -554,12 +584,18 @@ iex(5)> String.downcase("HI")
 <Step>
 
 ```erlang title="In Erlang"
-1> dbg:fun2ms(fun([M,N]) when N > 3 -> return_trace() end).
+1> dbg:fun2ms(
+ >   fun([M,N]) when N > 3 ->
+ >     return_trace()
+ > end).
 [{['$1','$2'],[{'>','$2',3}],[{return_trace}]}]
 ```
 
 ```elixir title="In Elixir"
-iex(1)> :dbg.fun2ms(fn [m, n] when n > 3 -> return_trace() end)
+iex(1)> :dbg.fun2ms(
+      >   fn [m, n] when n > 3 ->
+      >     return_trace()
+      > end)
 ```
 
 </Step>
@@ -567,17 +603,27 @@ iex(1)> :dbg.fun2ms(fn [m, n] when n > 3 -> return_trace() end)
 <Step>
 
 ```erlang title="In Erlang"
-1> dbg:fun2ms(fun([M,N]) when N > 3 -> return_trace() end).
+1> dbg:fun2ms(
+ >   fun([M,N]) when N > 3 ->
+ >     return_trace()
+ > end).
 [{['$1','$2'],[{'>','$2',3}],[{return_trace}]}]
 ```
 
 ```elixir title="In Elixir" subtitle="Boom!"
-iex(1)> :dbg.fun2ms(fn [m, n] when n > 3 -> return_trace() end)
+iex(1)> :dbg.fun2ms(
+      >   fn [m, n] when n > 3 ->
+      >     return_trace()
+      > end)
 ** (CompileError) iex:1: undefined function return_trace/0
-    (elixir 1.10.2) src/elixir_fn.erl:15: anonymous fn/4 in :elixir_fn.expand/3
-    (stdlib 3.12.1) lists.erl:1354: :lists.mapfoldl/3
-    (elixir 1.10.2) src/elixir_fn.erl:20: :elixir_fn.expand/3
-    (stdlib 3.12.1) lists.erl:1354: :lists.mapfoldl/3
+    (elixir 1.10.2) src/elixir_fn.erl:15:
+      anonymous fn/4 in :elixir_fn.expand/3
+    (stdlib 3.12.1) lists.erl:1354:
+      :lists.mapfoldl/3
+    (elixir 1.10.2) src/elixir_fn.erl:20:
+      :elixir_fn.expand/3
+    (stdlib 3.12.1) lists.erl:1354:
+      :lists.mapfoldl/3
 ```
 
 </Step>
@@ -585,13 +631,22 @@ iex(1)> :dbg.fun2ms(fn [m, n] when n > 3 -> return_trace() end)
 <Step>
 
 ```erlang title="In Erlang"
-1> dbg:fun2ms(fun([M,N]) when N > 3 -> return_trace() end).
+1> dbg:fun2ms(
+ >   fun([M,N]) when N > 3 ->
+ >     return_trace()
+ > end).
 [{['$1','$2'],[{'>','$2',3}],[{return_trace}]}]
 ```
 
 ```elixir title="In Elixir" subtitle="Modify the 3rd element of the tuple"
-iex(1)> :dbg.fun2ms(fn [m,  n] when m > 3 -> :return_trace end)
-      > |> put_in([Access.at(0), Access.elem(2), Access.at(0)], {:return_trace})
+iex(1)> :dbg.fun2ms(
+      >   fn [m, n] when n > 3 ->
+      >     :return_trace
+      > end)
+      > |> put_in(
+      >   [Access.at(0), Access.elem(2), Access.at(0)],
+      >   {:return_trace}
+      > )
 [{[:"$1",:"$2"],[{:>,:"$2",3}],[{:return_trace}]}]
 ```
 
@@ -848,6 +903,7 @@ Recon tracer rate limit tripped.
 - [Erlang in Anger](https://www.erlang-in-anger.com/)
 - [Observer Cli](https://github.com/zhongwencool/observer_cli)
 - [Debugging Techniques in Elixir](http://blog.plataformatec.com.br/2016/04/debugging-techniques-in-elixir-lang/)
+- [Erlang Factory - dbg/ttb](http://www.erlang-factory.com/upload/presentations/316/dbg[1].pdf)
 
 ---
 
