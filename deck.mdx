@@ -180,6 +180,8 @@ Of course the beam comes with a built in debug module.
 
 ### Actually there are a few!
 
+<!-- TODO: Probably don't need to mention debugger or seq_trace here -->
+
 <Steps>
 
 - `:erlang.trace` / `:erlang.trace_pattern`
@@ -538,6 +540,8 @@ iex(3)> ms =
       >   |> put_in([Access.at(0), Access.elem(2), Access.at(0)], {:return_trace})
 [{[:"$1"], [{:==, :"$1", "HI"}], [{:return_trace}]}]
 ```
+
+<!-- TODO: Remove fun2ms :return trace hack -->
 
 ```elixir subtitle="Call the function"
 iex(1)> pid = Trace.start()
