@@ -8,7 +8,11 @@ import { themes } from "mdx-deck";
 export const theme = {
   ...github,
   ...{
+    colors: { ...github.colors, background: "white" },
     styles: {
+      root: {
+        marginRight: "270px",
+      },
       a: {
         color: "#417be6",
         textDecoration: "none",
@@ -25,34 +29,57 @@ import jasper from "./images/jasper.jpg";
 import kilgore from "./images/kilgore.jpg";
 import maya from "./images/maya.jpg";
 import punch from "./images/punch.gif";
+import Layout from "./layout";
+
+<Layout>
 
 # Debugging Live Systems
 
 ## [@jeffutter](https://twitter.com/jeffutter "Jeffery Utter")
 
+</Layout>
+
 ---
+
+<Layout>
 
 # Jeff Utter
 
 <Appear>
 
-<Image src={bass} width="80vw" size="contain" />
+<Image src={bass} width="80%" size="contain" />
 
 </Appear>
 
+</Layout>
+
 ---
+
+<Layout>
 
 <Image src={br} width="80vw" size="contain" />
 
+</Layout>
+
 ---
+
+<Layout>
 
 # Topeka, KS
 
+</Layout>
+
 ---
+
+<Layout>
 
 # Two Cats and a Dog
 
+</Layout>
+
 ---
+
+<Layout>
 
 # Kilgore
 
@@ -60,7 +87,11 @@ import punch from "./images/punch.gif";
   <Image src={kilgore} width="80vw" size="contain" />
 </Appear>
 
+</Layout>
+
 ---
+
+<Layout>
 
 # Jasper
 
@@ -68,7 +99,11 @@ import punch from "./images/punch.gif";
   <Image src={jasper} width="80vw" size="contain" />
 </Appear>
 
+</Layout>
+
 ---
+
+<Layout>
 
 # Maya
 
@@ -76,11 +111,19 @@ import punch from "./images/punch.gif";
   <Image src={maya} width="80vw" size="contain" />
 </Appear>
 
+</Layout>
+
 ---
+
+<Layout>
 
 # Live Debugging
 
+</Layout>
+
 ---
+
+<Layout>
 
 ## What is live debugging?
 
@@ -93,7 +136,11 @@ import punch from "./images/punch.gif";
 
 </Steps>
 
+</Layout>
+
 ---
+
+<Layout>
 
 ## Tracing
 
@@ -107,7 +154,11 @@ Sometimes the error is obvious!
   <Image src={traceError} width="80vw" size="contain" />
 </Appear>
 
+</Layout>
+
 ---
+
+<Layout>
 
 ## Tracing
 
@@ -129,15 +180,27 @@ Enter Remote Debugging!
 
 </Appear>
 
+</Layout>
+
 ---
+
+<Layout>
 
 ## Tools built in to the BEAM
 
+</Layout>
+
 ---
+
+<Layout>
 
 ### Remote console
 
+</Layout>
+
 ---
+
+<Layout>
 
 ### Remote console
 
@@ -145,7 +208,11 @@ Enter Remote Debugging!
 - Distillery
 - Elixir Releases
 
+</Layout>
+
 ---
+
+<Layout>
 
 <CodeSurfer>
 
@@ -170,13 +237,21 @@ $ ./bin/release remote
 
 </Notes>
 
+</Layout>
+
 ---
+
+<Layout>
 
 ### Beam Debugging
 
 Of course the beam comes with a built in debug module.
 
+</Layout>
+
 ---
+
+<Layout>
 
 ### Actually there are a few!
 
@@ -192,7 +267,11 @@ Of course the beam comes with a built in debug module.
 
 </Steps>
 
+</Layout>
+
 ---
+
+<Layout>
 
 ### `:erlang.trace`
 
@@ -203,11 +282,19 @@ Of course the beam comes with a built in debug module.
 
 </Notes>
 
+</Layout>
+
 ---
+
+<Layout>
 
 ### The tracing process
 
+</Layout>
+
 ---
+
+<Layout>
 
 <CodeSurfer>
 
@@ -239,11 +326,19 @@ end
 
 </Notes>
 
+</Layout>
+
 ---
+
+<Layout>
 
 ### Trace a process
 
+</Layout>
+
 ---
+
+<Layout>
 
 <CodeSurfer>
 
@@ -286,7 +381,11 @@ end
 
 </CodeSurfer>
 
+</Layout>
+
 ---
+
+<Layout>
 
 <CodeSurfer>
 
@@ -369,11 +468,19 @@ iex(4)> Echo.call(echo_pid, :hi)
 
 </Notes>
 
+</Layout>
+
 ---
+
+<Layout>
 
 ### `:erlang.trace` Options
 
+</Layout>
+
 ---
+
+<Layout>
 
 <CodeSurfer>
 
@@ -423,11 +530,19 @@ trace_flag() =
 
 </Notes>
 
+</Layout>
+
 ---
+
+<Layout>
 
 ### Trace a function
 
+</Layout>
+
 ---
+
+<Layout>
 
 <CodeSurfer>
 
@@ -482,7 +597,11 @@ iex(6)> String.downcase("FOO")
 
 </CodeSurfer>
 
+</Layout>
+
 ---
+
+<Layout>
 
 ## Can we get more specific?
 
@@ -492,7 +611,11 @@ iex(6)> String.downcase("FOO")
 
 </Appear>
 
+</Layout>
+
 ---
+
+<Layout>
 
 <CodeSurfer>
 
@@ -562,11 +685,19 @@ iex(5)> String.downcase("HI")
 
 </CodeSurfer>
 
+</Layout>
+
 ---
+
+<Layout>
 
 #### What on Earth?
 
+</Layout>
+
 ---
+
+<Layout>
 
 <CodeSurfer>
 
@@ -585,11 +716,19 @@ iex(5)> String.downcase("HI")
 
 </Notes>
 
+</Layout>
+
 ---
+
+<Layout>
 
 #### The Hack...
 
+</Layout>
+
 ---
+
+<Layout>
 
 <CodeSurferColumns>
 
@@ -666,29 +805,11 @@ iex(1)> :dbg.fun2ms(
 
 </CodeSurferColumns>
 
----
-
-<CodeSurfer>
-
-```elixir title="A More Complex Example"
-iex(1)> user_uuid = "5a6ae83f-9c66-464a-bed0-d37bfd0d2f36"
-iex(2)> chat_uuid = "1a5a096e-f5e7-4630-ab72-750337ed939c"
-iex(3)> :dbg.fun2ms(
-      >    fn [topic, chat_id, uuid] when chat_id == chat_uuid and uuid == user_uuid -> nil end
-      > )
-[
-  {[:"$1", :"$2", :"$3"],
-   [
-     {:andalso, {:==, :"$2", "1a5a096e-f5e7-4630-ab72-750337ed939c"},
-      {:==, :"$3", "5a6ae83f-9c66-464a-bed0-d37bfd0d2f36"}}
-   ], [nil]}
-]
-
-```
-
-</CodeSurfer>
+</Layout>
 
 ---
+
+<Layout>
 
 If you do this a lot in Elixir you can use [ex2ms](https://github.com/ericmj/ex2ms)
 
@@ -698,7 +819,11 @@ If you do this a lot in Elixir you can use [ex2ms](https://github.com/ericmj/ex2
 
 </Notes>
 
+</Layout>
+
 ---
+
+<Layout>
 
 ### `:dbg`
 
@@ -707,11 +832,19 @@ If you do this a lot in Elixir you can use [ex2ms](https://github.com/ericmj/ex2
 - Robust, ~150 lines of erlang
 - Supports tracing other nodes
 
+</Layout>
+
 ---
+
+<Layout>
 
 ### Trace a process
 
+</Layout>
+
 ---
+
+<Layout>
 
 <CodeSurfer>
 
@@ -770,11 +903,19 @@ iex(8)> :dbg.stop_clear()
 
 </CodeSurfer>
 
+</Layout>
+
 ---
+
+<Layout>
 
 ### Trace a function
 
+</Layout>
+
 ---
+
+<Layout>
 
 <CodeSurfer>
 
@@ -835,11 +976,19 @@ iex(3)>  :dbg.tpl(String, :downcase, :x)
 
 </CodeSurfer>
 
+</Layout>
+
 ---
+
+<Layout>
 
 The 3rd argument to `:dbg.tpl(Module, :function, _)` can also be a MatchSpec
 
+</Layout>
+
 ---
+
+<Layout>
 
 ### Pitfalls of `:erlang.trace` and `:dbg`
 
@@ -851,7 +1000,11 @@ The 3rd argument to `:dbg.tpl(Module, :function, _)` can also be a MatchSpec
 
 </Steps>
 
+</Layout>
+
 ---
+
+<Layout>
 
 ## Recon
 
@@ -867,11 +1020,19 @@ The 3rd argument to `:dbg.tpl(Module, :function, _)` can also be a MatchSpec
 
 </Steps>
 
+</Layout>
+
 ---
+
+<Layout>
 
 ### Trace a function
 
+</Layout>
+
 ---
+
+<Layout>
 
 <CodeSurfer>
 
@@ -900,7 +1061,11 @@ Recon tracer rate limit tripped.
 
 </CodeSurfer>
 
+</Layout>
+
 ---
+
+<Layout>
 
 <Steps>
 
@@ -912,7 +1077,11 @@ Recon tracer rate limit tripped.
 
 </Steps>
 
+</Layout>
+
 ---
+
+<Layout>
 
 ## What's left?
 
@@ -927,7 +1096,11 @@ Recon tracer rate limit tripped.
 
 </Steps>
 
+</Layout>
+
 ---
+
+<Layout>
 
 ## Resources
 
@@ -939,8 +1112,14 @@ Recon tracer rate limit tripped.
 - [Debugging Techniques in Elixir](http://blog.plataformatec.com.br/2016/04/debugging-techniques-in-elixir-lang/)
 - [Erlang Factory - dbg/ttb](http://www.erlang-factory.com/upload/presentations/316/dbg[1].pdf)
 
+</Layout>
+
 ---
+
+<Layout>
 
 # Questions?
 
 <Image src={punch} width="80vw" size="contain" />
+
+</Layout>
