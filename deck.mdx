@@ -29,6 +29,7 @@ import jasper from "./images/jasper.jpg";
 import kilgore from "./images/kilgore.jpg";
 import maya from "./images/maya.jpg";
 import punch from "./images/punch.gif";
+import olive from "./images/olive2.jpg";
 import Layout from "./layout";
 
 <Layout>
@@ -57,14 +58,6 @@ import Layout from "./layout";
 
 <Layout>
 
-<Image src={br} width="80vw" size="contain" />
-
-</Layout>
-
----
-
-<Layout>
-
 # Topeka, KS
 
 </Layout>
@@ -73,7 +66,7 @@ import Layout from "./layout";
 
 <Layout>
 
-# Two Cats and a Dog
+<Image src={br} width="80vw" size="contain" />
 
 </Layout>
 
@@ -81,23 +74,27 @@ import Layout from "./layout";
 
 <Layout>
 
-# Kilgore
+# Olive
 
 <Appear>
-  <Image src={kilgore} width="80vw" size="contain" />
+
+<Image src={olive} width="100%" size="contain" />
+
 </Appear>
 
 </Layout>
 
+<Notes>
+
+- If you see inadvertently bouncing on video... now you know why
+
+</Notes>
+
 ---
 
 <Layout>
 
-# Jasper
-
-<Appear>
-  <Image src={jasper} width="80vw" size="contain" />
-</Appear>
+# Debugging Live Systems
 
 </Layout>
 
@@ -105,27 +102,7 @@ import Layout from "./layout";
 
 <Layout>
 
-# Maya
-
-<Appear>
-  <Image src={maya} width="80vw" size="contain" />
-</Appear>
-
-</Layout>
-
----
-
-<Layout>
-
-# Live Debugging
-
-</Layout>
-
----
-
-<Layout>
-
-## What is live debugging?
+## What is 'Debugging Live Systems'?
 
 <Steps>
 
@@ -142,16 +119,22 @@ import Layout from "./layout";
 
 <Layout>
 
+# The Problem:
+
+</Layout>
+
+---
+
+<Layout>
+
 ## Tracing
 
 <Appear>
 
 Sometimes the error is obvious!
 
-</Appear>
+<Image src={traceError} width="80vw" size="contain" />
 
-<Appear>
-  <Image src={traceError} width="80vw" size="contain" />
 </Appear>
 
 </Layout>
@@ -166,15 +149,7 @@ Sometimes the error is obvious!
 
 Sometimes the error is nowhere to be found!
 
-</Appear>
-
-<Appear>
-
 <Image src={traceOK} width="80vw" size="contain" />
-
-</Appear>
-
-<Appear>
 
 Enter Remote Debugging!
 
@@ -194,7 +169,7 @@ Enter Remote Debugging!
 
 <Layout>
 
-### Remote console
+### Step 1: Remote console
 
 </Layout>
 
@@ -202,68 +177,21 @@ Enter Remote Debugging!
 
 <Layout>
 
-### Remote console
+### Step 2: Beam Debugging Tools
 
-- IEx
-- Distillery
-- Elixir Releases
+Of course the beam comes with built in debugging tools!
 
 </Layout>
 
 ---
 
 <Layout>
-
-<CodeSurfer>
-
-```shell title="Remote Shell with IEx"
-$ iex --name "debug@hostname.com" --cookie secret --remsh "app@hostname.com"
-```
-
-```shell title="Remote Shell with Distillery"
-$ ./bin/release remote_console
-```
-
-```shell title="Remote Shell with Elixir Releases"
-$ ./bin/release remote
-```
-
-</CodeSurfer>
-
-<Notes>
-
-- Release have remote shell built in
-- Not going into too much detail since every environment is different
-
-</Notes>
-
-</Layout>
-
----
-
-<Layout>
-
-### Beam Debugging
-
-Of course the beam comes with a built in debug module.
-
-</Layout>
-
----
-
-<Layout>
-
-### Actually there are a few!
-
-<!-- TODO: Probably don't need to mention debugger or seq_trace here -->
 
 <Steps>
 
-- `:erlang.trace` / `:erlang.trace_pattern`
-- `:dbg`
-- `:debugger`
 - `:sys` module
-- `:seq_trace`
+- **`:erlang.trace` / `:erlang.trace_pattern`**
+- **`:dbg`**
 
 </Steps>
 
@@ -275,6 +203,8 @@ Of course the beam comes with a built in debug module.
 
 ### `:erlang.trace`
 
+</Layout>
+
 <Notes>
 
 - BIF
@@ -282,13 +212,13 @@ Of course the beam comes with a built in debug module.
 
 </Notes>
 
-</Layout>
-
 ---
 
 <Layout>
 
 ### The tracing process
+
+`:erlang.trace` requires a process to receive the tracing information
 
 </Layout>
 
@@ -320,13 +250,13 @@ end
 
 </CodeSurfer>
 
+</Layout>
+
 <Notes>
 
 - Receives traces messages and logs them to the console
 
 </Notes>
-
-</Layout>
 
 ---
 
@@ -405,11 +335,7 @@ iex(3)> :erlang.trace(echo_pid, true, [:all, {:tracer, tracer_pid}])
 1
 ```
 
-```diff subtitle="Tell erlang what process to trace" 5[23:30]
-
-```
-
-```diff subtitle="'How'" 5[33:36]
+```diff subtitle="Trace all processes and ports" 5[39:44]
 
 ```
 
@@ -458,6 +384,8 @@ iex(4)> Echo.call(echo_pid, :hi)
 
 </CodeSurfer>
 
+</Layout>
+
 <Notes>
 
 - trace_ts = trace_timestamp
@@ -467,8 +395,6 @@ iex(4)> Echo.call(echo_pid, :hi)
 - Tracer options: all | send | 'receive' | procs | ports | call | arity | return_to | silent | running | exiting | running_procs | running_ports | garbage_collection | timestamp | cpu_timestamp | monotonic_timestamp | strict_monotonic_timestamp | set_on_spawn | set_on_first_spawn | set_on_link | set_on_first_link |
 
 </Notes>
-
-</Layout>
 
 ---
 
@@ -523,14 +449,14 @@ trace_flag() =
 
 </CodeSurfer>
 
+</Layout>
+
 <Notes>
 
 - Garbagn Collection message tags: gc_minor_start, gc_max_heap_size, and gc_minor_end.
 - gc_max_heap_size = When process hits max_heap_size
 
 </Notes>
-
-</Layout>
 
 ---
 
@@ -558,6 +484,10 @@ iex(2)> :erlang.trace(:all, true, [:call, {:tracer, pid}])
 59
 ```
 
+```diff subtitle="Trace function calls" 3[36:40]
+
+```
+
 ```elixir subtitle="Set the trace pattern"
 iex(1)> pid = Trace.start()
 #PID<0.118.0>
@@ -565,6 +495,10 @@ iex(2)> :erlang.trace(:all, true, [:call, {:tracer, pid}])
 59
 iex(3)> :erlang.trace_pattern({String, :downcase, 1}, true, [])
 1
+```
+
+```diff subtitle="Enable tracing for all messages to that function" 5[55:59]
+
 ```
 
 ```elixir subtitle="Do something traceable"
@@ -603,7 +537,7 @@ iex(6)> String.downcase("FOO")
 
 <Layout>
 
-## Can we get more specific?
+## This is great, but...can we get more specific?
 
 <Appear>
 
@@ -631,25 +565,13 @@ iex(2)> :erlang.trace(:all, true, [:call, {:tracer, tracer_pid}])
 59
 ```
 
-```elixir subtitle="Trace all processes" 3[23:26]
+```elixir subtitle="Setup the match spec"
 iex(1)> pid = Trace.start()
 #PID<0.118.0>
 iex(2)> :erlang.trace(:all, true, [:call, {:tracer, tracer_pid}])
 59
-```
-
-```elixir subtitle="Trace function calls" 3[36:40]
-iex(1)> pid = Trace.start()
-#PID<0.118.0>
-iex(2)> :erlang.trace(:all, true, [:call, {:tracer, tracer_pid}])
-59
-```
-
-```elixir subtitle="Send it to the tracer pid" 3[44:62]
-iex(1)> pid = Trace.start()
-#PID<0.118.0>
-iex(2)> :erlang.trace(:all, true, [:call, {:tracer, tracer_pid}])
-59
+iex(3)> :dbg.fun2ms(fn [s] when s == "HI" -> :return_trace end)
+[{[:"$1"], [{:==, :"$1", "HI"}], [:return_trace]}]
 ```
 
 ```elixir subtitle="Setup the match spec"
@@ -657,27 +579,46 @@ iex(1)> pid = Trace.start()
 #PID<0.118.0>
 iex(2)> :erlang.trace(:all, true, [:call, {:tracer, tracer_pid}])
 59
-# We'll talk about this next line a bit more later
-iex(3)> ms =
-      >   :dbg.fun2ms(fn [s] when s == "HI" -> :return_trace end)
-      >   |> put_in([Access.at(0), Access.elem(2), Access.at(0)], {:return_trace})
-[{[:"$1"], [{:==, :"$1", "HI"}], [{:return_trace}]}]
+iex(3)> :dbg.fun2ms(fn [s] when s == "HI" -> :return_trace end)
+[{[:"$1"], [{:==, :"$1", "HI"}], [:return_trace]}]
+iex(4)> ms = [{[:"$1"], [{:==, :"$1", "HI"}], [{:return_trace}]}]
 ```
 
-<!-- TODO: Remove fun2ms :return trace hack -->
+```elixir subtitle="A note about return_trace" 5[45:58],6[34:47],7[48:62]
+iex(1)> pid = Trace.start()
+#PID<0.118.0>
+iex(2)> :erlang.trace(:all, true, [:call, {:tracer, tracer_pid}])
+59
+iex(3)> :dbg.fun2ms(fn [s] when s == "HI" -> :return_trace end)
+[{[:"$1"], [{:==, :"$1", "HI"}], [:return_trace]}]
+iex(4)> ms = [{[:"$1"], [{:==, :"$1", "HI"}], [{:return_trace}]}]
+```
+
+```elixir subtitle="Setup the Pattern Trace"
+iex(1)> pid = Trace.start()
+#PID<0.118.0>
+iex(2)> :erlang.trace(:all, true, [:call, {:tracer, tracer_pid}])
+59
+iex(3)> :dbg.fun2ms(fn [s] when s == "HI" -> :return_trace end)
+[{[:"$1"], [{:==, :"$1", "HI"}], [:return_trace]}]
+iex(4)> ms = [{[:"$1"], [{:==, :"$1", "HI"}], [{:return_trace}]}]
+iex(5)> :erlang.trace_pattern({String, :downcase, 1}, ms, [])
+1
+```
 
 ```elixir subtitle="Call the function"
 iex(1)> pid = Trace.start()
 #PID<0.118.0>
 iex(2)> :erlang.trace(:all, true, [:call, {:tracer, tracer_pid}])
 59
-iex(3)> ms =
-      >   :dbg.fun2ms(fn [s] when s == "HI" -> :return_trace end)
-      >   |> put_in([Access.at(0), Access.elem(2), Access.at(0)], {:return_trace})
-[{[:"$1"], [{:==, :"$1", "HI"}], [{:return_trace}]}]
+iex(3)> :dbg.fun2ms(fn [s] when s == "HI" -> :return_trace end)
+[{[:"$1"], [{:==, :"$1", "HI"}], [:return_trace]}]
+iex(4)> ms = [{[:"$1"], [{:==, :"$1", "HI"}], [{:return_trace}]}]
+iex(5)> :erlang.trace_pattern({String, :downcase, 1}, ms, [])
+1
 iex(6)> String.downcase("FOO")
 "foo"
-iex(5)> String.downcase("HI")
+iex(7)> String.downcase("HI")
 {:trace, #PID<0.109.0>, :call, {String, :downcase, ["HI"]}}
 "hi"
 {:trace, #PID<0.109.0>, :return_from, {String, :downcase, 1}, "hi"}
@@ -691,38 +632,20 @@ iex(5)> String.downcase("HI")
 
 <Layout>
 
-#### What on Earth?
-
-</Layout>
-
----
-
-<Layout>
-
-<CodeSurfer>
+# Matchspecs
 
 ```elixir
-:dbg.fun2ms(fn [s] when s == "HI" -> nil end)
+:dbg.fun2ms(fn [s] when s == "bd64bca0-721f-4162-b95c-f779d9999d0c" -> nil end)
 ```
 
-</CodeSurfer>
-
-<Notes>
+<Steps>
 
 - Looks like a function... sorta
 - Can use most guards
 - Can use variables from outside in guard
-- The function body bit is hard in elixir
+- Dealing with the function body is hard in elixir
 
-</Notes>
-
-</Layout>
-
----
-
-<Layout>
-
-#### The Hack...
+</Steps>
 
 </Layout>
 
@@ -794,11 +717,7 @@ iex(1)> :dbg.fun2ms(
       >   fn [m, n] when n > 3 ->
       >     :return_trace
       > end)
-      > |> put_in(
-      >   [Access.at(0), Access.elem(2), Access.at(0)],
-      >   {:return_trace}
-      > )
-[{[:"$1",:"$2"],[{:>,:"$2",3}],[{:return_trace}]}]
+[{[:"$1",:"$2"],[{:>,:"$2",3}],[:return_trace]}]
 ```
 
 </Step>
@@ -813,13 +732,13 @@ iex(1)> :dbg.fun2ms(
 
 If you do this a lot in Elixir you can use [ex2ms](https://github.com/ericmj/ex2ms)
 
+</Layout>
+
 <Notes>
 
 - You don't necessarily need this on the box you are using it on
 
 </Notes>
-
-</Layout>
 
 ---
 
@@ -995,7 +914,7 @@ The 3rd argument to `:dbg.tpl(Module, :function, _)` can also be a MatchSpec
 <Steps>
 
 - Arguably confusing interface
-- Potential to dump unbounded amonuts of tracing
+- Potential to dump unbounded amounts of tracing
 - Ability to deadlock
 
 </Steps>
@@ -1012,7 +931,7 @@ The 3rd argument to `:dbg.tpl(Module, :function, _)` can also be a MatchSpec
 
 - `:erlang.trace` wrapper by Fred Hebert
 - Production Safe!
-  - Tracer links to shell
+  - Tracer links to shell (group leader)
   - Formatter links to tracer
   - Gracefully shuts down on remote shell disconnect
   - Enforces limited count of traces
