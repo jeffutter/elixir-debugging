@@ -10,8 +10,7 @@ export const theme = {
   ...{
     colors: { ...github.colors, background: "white" },
     styles: {
-      root: {
-      },
+      root: {},
       a: {
         color: "#417be6",
         textDecoration: "none",
@@ -29,6 +28,7 @@ import kilgore from "./images/kilgore.jpg";
 import maya from "./images/maya.jpg";
 import punch from "./images/punch.gif";
 import olive from "./images/olive2.jpg";
+import boss from "./videos/boss.mp4";
 import Layout from "./layout";
 
 <Layout>
@@ -119,6 +119,18 @@ import Layout from "./layout";
 <Layout>
 
 # The Problem:
+
+</Layout>
+
+---
+
+<Layout>
+
+### Hello Jeff... what's happening?
+
+<video autoPlay loop muted>
+  <source src={boss} type="video/mp4" />
+</video>
 
 </Layout>
 
